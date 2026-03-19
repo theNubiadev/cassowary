@@ -4,10 +4,294 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// AUTH & USERS
+// ─────────────────────────────────────────────
+
+enum Role {
+  DRIVER
+  CARGO_OWNER
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  PAYMENT_PENDING
+  PAID
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  DISPUTED
+}
+
+enum TransactionStatus {
+  INITIATED
+  SUCCESSFUL
+  FAILED
+  REVERSED
+}
+
+enum TruckType {
+  FLATBED
+  REFRIGERATED
+  TANKER
+  CONTAINER
+  TIPPER
+  VAN
+  LOWBED
+  CURTAINSIDER
+}
+
+enum CargoType {
+  GENERAL
+  PERISHABLE
+  FRAGILE
+  HAZARDOUS
+  LIVESTOCK
+  LIQUID
+  MACHINERY
+  ELECTRONICS
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String    @unique
+  emailVerified      DateTime?
+  password           String?   // null for OAuth users
+  phone              String?
+  image              String?
+  role               Role      @default(CARGO_OWNER)
+  onboardingComplete Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // NextAuth relations
+  accounts       Account[]
+  sessions       Session[]
+
+  // App relations
+  driverProfile  DriverProfile?
+  cargoListings  CargoListing[]
+  bookingsAsOwner Booking[]     @relation("OwnerBookings")
+  bookingsAsDriver Booking[]    @relation("DriverBookings")
+  reviewsGiven   Review[]       @relation("ReviewsGiven")
+  reviewsReceived Review[]      @relation("ReviewsReceived")
+}
+
+// NextAuth required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────
+// DRIVER PROFILE & TRUCK
+// ─────────────────────────────────────────────
+
+model DriverProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Personal / business
+  licenseNumber    String?
+  licenseExpiry    DateTime?
+  yearsExperience  Int       @default(0)
+  bio              String?   @db.Text
+  isVerified       Boolean   @default(false)
+  isAvailable      Boolean   @default(true)
+
+  // Truck details
+  truckType        TruckType
+  truckModel       String
+  truckYear        Int
+  plateNumber      String    @unique
+  capacityTons     Float     // max cargo weight in tonnes
+  lengthMeters     Float?    // truck bed length
+
+  // Pricing
+  ratePerKm        Float     // naira per km
+  minimumCharge    Float     // minimum booking charge in naira
+
+  // Coverage
+  baseState        String    // home state (e.g. "Lagos")
+  baseCity         String
+  servicesRoutes   Route[]   // routes this driver covers
+
+  // Stats (denormalized for performance)
+  totalTrips       Int       @default(0)
+  avgRating        Float     @default(0)
+  totalEarnings    Float     @default(0)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  bookings         Booking[]
+}
+
+model Route {
+  id              String        @id @default(cuid())
+  driverProfileId String
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+
+  originState     String
+  originCity      String?
+  destState       String
+  destCity        String?
+  estimatedDays   Int           @default(1)
+
+  createdAt       DateTime      @default(now())
+}
+
+// ─────────────────────────────────────────────
+// CARGO LISTINGS
+// ─────────────────────────────────────────────
+
+model CargoListing {
+  id              String     @id @default(cuid())
+  ownerId         String
+  owner           User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  title           String
+  description     String?    @db.Text
+  cargoType       CargoType  @default(GENERAL)
+  weightTons      Float
+  lengthMeters    Float?
+
+  originState     String
+  originCity      String
+  originAddress   String?
+  destState       String
+  destCity        String
+  destAddress     String?
+
+  requiredTruck   TruckType?  // optional preferred truck type
+  neededBy        DateTime
+  budget          Float?      // optional max budget in naira
+  isActive        Boolean     @default(true)
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  bookings        Booking[]
+}
+
+// ─────────────────────────────────────────────
+// BOOKINGS
+// ─────────────────────────────────────────────
+
+model Booking {
+  id              String        @id @default(cuid())
+  cargoListingId  String
+  cargoListing    CargoListing  @relation(fields: [cargoListingId], references: [id])
+  ownerId         String
+  owner           User          @relation("OwnerBookings", fields: [ownerId], references: [id])
+  driverId        String
+  driver          User          @relation("DriverBookings", fields: [driverId], references: [id])
+  driverProfileId String
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id])
+
+  status          BookingStatus @default(PENDING)
+  agreedAmount    Float         // negotiated total in naira
+  pickupDate      DateTime
+  estimatedDelivery DateTime?
+  actualDelivery  DateTime?
+  notes           String?       @db.Text
+
+  // Driver acceptance
+  acceptedAt      DateTime?
+  declinedAt      DateTime?
+  declineReason   String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  transaction     Transaction?
+  review          Review?
+}
+
+// ─────────────────────────────────────────────
+// TRANSACTIONS (INTERSWITCH)
+// ─────────────────────────────────────────────
+
+model Transaction {
+  id                     String            @id @default(cuid())
+  bookingId              String            @unique
+  booking                Booking           @relation(fields: [bookingId], references: [id])
+
+  // Interswitch fields
+  merchantCode           String
+  payItemId              String
+  transactionReference   String            @unique  // our ref (e.g. LL-{cuid})
+  paymentReference       String?           // Interswitch's ref after payment
+  amount                 Float             // in naira
+  amountKobo             Int               // amount × 100
+  currency               String            @default("566")  // 566 = NGN
+
+  status                 TransactionStatus @default(INITIATED)
+  channel                String?           // CARD, TRANSFER, USSD, etc.
+  responseCode           String?
+  responseDescription    String?
+
+  initiatedAt            DateTime          @default(now())
+  completedAt            DateTime?
+  updatedAt              DateTime          @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// REVIEWS
+// ─────────────────────────────────────────────
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  giverId    String
+  giver      User     @relation("ReviewsGiven", fields: [giverId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReviewsReceived", fields: [receiverId], references: [id])
+
+  rating     Int      // 1–5
+  comment    String?  @db.Text
+
+  createdAt  DateTime @default(now())
 }
