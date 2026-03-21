@@ -8,7 +8,7 @@ const registerSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   phone: z.string().min(11, "Enter a valid Nigerian phone number"),
-  role: z.enum(["DRIVER", "CARGO_OWNER"]),
+  role: z.enum(["DRIVER", "CARGO_OWNER"]),  // role of the accounter owner
 });
 
 export async function POST(req: NextRequest) {
@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
+      // the success maessage for account creation
       { message: ` ${user.role} Account created successfully` , user },
       { status: 201 }
     );
