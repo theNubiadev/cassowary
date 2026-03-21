@@ -1,0 +1,265 @@
+ LoadLink — Product Requirements Document
+
+Version: 1.0
+Status: Draft
+Date: March 2026
+Team: LoadLink Engineering — Enyata × Interswitch Hackathon
+Confidential
+
+ Table of Contents
+
+1. Executive Summary
+2. Problem Statement
+3. Product Vision & Goals
+4. Target Users & Personas
+5. Features & Requirements
+6. User Stories
+7. Technical Architecture
+8. Interswitch Payment Integration
+9. Non-Functional Requirements
+10. Success Metrics
+11. Risks & Mitigations
+12. Post-Hackathon Roadmap
+13. Appendix
+
+
+
+1. Executive Summary
+
+LoadLink is a two-sided marketplace platform that connects cargo owners with verified truck drivers across Nigeria. Modelled after the on-demand economy — think Uber for haulage — LoadLink digitises the traditionally fragmented and informal logistics sector by providing a structured, transparent, and payment-secured environment for cargo transportation.
+
+The platform targets two primary user personas: **Cargo Owners** who need to move goods between Nigerian states, and **Truck Drivers** who want to fill their trucks with verified, paying cargo. LoadLink handles discovery, matching, booking, and secure payment — end to end.
+
+> Hackathon Context: LoadLink is built for the Enyata × Interswitch Hackathon, targeting the Transportation vertical. The Interswitch payment gateway is a core integration requirement and central to the product's booking and settlement flow.
+
+
+
+ 2. Problem Statement
+
+2.1 The Status Quo
+
+Nigeria's haulage industry is estimated to be worth over ₦2 trillion annually, yet it operates almost entirely through informal channels: phone calls, roadside negotiations, and personal referrals. This creates significant pain for both sides of the market.
+
+ 2.2 Pain Points — Cargo Owners
+
+| Pain Point | Detail |
+|---|---|
+| No centralised directory | Cargo owners have no way to browse available trucks or drivers by route or capacity |
+| Opaque pricing | Rates are negotiated ad hoc with no market benchmarks — owners routinely overpay |
+| No driver vetting | No background checks or track records — cargo theft and damage are common |
+| Cash-only payments | Creates security risk, no paper trail, reconciliation nightmares |
+| No tracking or accountability | Once cargo leaves, there is no visibility until it arrives (or doesn't) |
+
+ 2.3 Pain Points — Truck Drivers
+
+| Pain Point | Detail |
+|---|---|
+| Idle trucks | Trucks return empty after deliveries (deadhead trips) — up to 40% of all km driven |
+| Middlemen and touts | Clearing agents take 15–25% commission on every load secured |
+| No digital record | No trip history makes it impossible to build a reputation or access logistics credit |
+| Cash collection risk | Collecting large sums in cash creates physical safety risks and payment delays |
+
+ 2.4 Market Opportunity
+
+Nigeria has over 300,000 registered commercial trucks and a logistics deficit estimated at 40% of GDP. Digital penetration in haulage is below 3%. LoadLink addresses a large, underserved market with a proven global playbook (Uber Freight, Convoy, Kobo360).
+
+ 3. Product Vision & Goals
+
+ 3.1 Vision Statement
+
+> *"To become the operating system for cargo movement in Nigeria — making haulage as simple, safe, and transparent as booking a ride."*
+
+ 3.2 Mission
+
+To eliminate information asymmetry in Nigeria's haulage sector by connecting the right driver to the right cargo, at a fair price, with a payment experience trusted by millions.
+
+ 3.3 Goals for Hackathon MVP
+
+1. Demonstrate a working end-to-end booking flow: Register → Search Driver → Book → Pay via Interswitch → Confirmed
+2. Integrate Interswitch Quickteller/Webpay as the primary payment channel
+3. Support dual user roles (Cargo Owner, Truck Driver) with role-based dashboards
+4. Seed realistic Nigerian demo data (routes, truck types, drivers) for live demonstration
+5. Deliver a polished, functional UI that clearly communicates the product's value
+
+ 4. Target Users & Personas
+
+ 4.1 Persona A — The Cargo Owner
+
+Name: Emeka Okonkwo
+Role: SME owner / FMCG distributor
+Location: Lagos Island, Lagos
+
+Background:
+Emeka runs a rice distribution business and ships goods to Abuja, Kano, and Port Harcourt regularly. He currently finds trucks through a network of contacts and park touts. It usually takes 2–3 days of phone calls to secure a truck, and he never knows if the driver is reliable until the cargo arrives.
+
+Goals:
+- Find a reliable truck for his specific route quickly
+- Know the price upfront before committing
+- Pay digitally and have a record of the transaction
+- Know his cargo is safe and trackable
+
+Frustrations:
+- Wasted time negotiating by phone
+- Has had two cargo theft incidents in three years
+- Cannot get insurance without proof of shipment documentation
+
+Tech Comfort: Uses WhatsApp, Opay, and mobile banking daily. Comfortable with web apps on mobile.
+
+
+ 4.2 Persona B — The Truck Driver
+
+Name: Chukwudi Nwachukwu
+Role: Independent truck owner-operator
+Location: Apapa, Lagos (base)
+
+Background:
+Chukwudi owns a 30-tonne container truck and has been driving the Lagos–Abuja corridor for 10 years. He gets most of his loads through a clearing agent at Apapa port who takes a 20% cut. His truck sits idle 3–4 days a week. He has no formal record of his trips or earnings.
+
+Goals:
+- Fill his truck for every Lagos–Abuja run (and the return leg)
+- Get paid directly — no middlemen taking commission
+- Build a verifiable track record he can show to banks for a truck loan
+- Reduce cash handling risk
+
+Frustrations:
+- Lost ₦180,000 to a bad cargo owner who never paid
+- Empty return trips cost him fuel with no revenue
+- Banks won't give him credit because he has no income documentation
+
+Tech Comfort: Uses Android smartphone. Comfortable with bank transfers and USSD. Uses WhatsApp for business communication.
+
+---
+
+ 5. Features & Requirements
+
+ 5.1 Feature Priority Definitions
+
+| Priority | Definition |
+|---|---|
+| P0 — Critical | Must ship for hackathon demo. Product is broken without it. |
+| P1 — High | Should ship for hackathon. Significantly improves the demo and usability. |
+| P2 — Medium | Nice to have for hackathon. Required for beta launch. |
+| P3 — Future | Post-hackathon roadmap. |
+
+ 5.2 Full Feature List
+
+ Authentication & Onboarding
+
+| Feature | Description | Priority |
+|---|---|---|
+| Dual-role registration | Users register as either Cargo Owner or Driver — role determines their entire experience | P0 |
+| Email/password login | Standard credentials-based authentication with bcrypt hashing | P0 |
+| Google OAuth | Sign in with Google as an alternative to email/password | P0 |
+| Role-based session | JWT session carries role and onboardingComplete — used by middleware and UI | P0 |
+| Driver onboarding gate | Drivers who haven't completed onboarding are redirected to the setup flow automatically | P0 |
+| Driver onboarding — Step 1 (Truck) | Capture truck type, model, year, plate number, capacity, base location, bio | P0 |
+| Driver onboarding — Step 2 (Routes) | Add one or more origin→destination state routes with estimated transit days | P0 |
+| Driver onboarding — Step 3 (Rates) | Set rate per km and minimum charge in naira | P0 |
+
+ Discovery & Search
+
+| Feature | Description | Priority |
+|---|---|---|
+| Driver search | Search drivers by origin state, destination state, truck type, and minimum capacity | P0 |
+| Search results with cards | Display driver cards showing name, truck type, capacity, rate/km, rating, routes, verified badge | P0 |
+| Pagination | Paginated search results (12 per page), ordered by rating then total trips | P0 |
+| Driver profile page | Full public profile: truck details, all routes, rate, bio, reviews, Book Now CTA | P1 |
+| Cargo listings for drivers | Drivers can browse open cargo jobs posted by owners | P1 |
+
+ Booking System
+
+| Feature | Description | Priority |
+|---|---|---|
+| Create booking | Cargo owner books a driver — specifies agreed amount, pickup date, notes | P0 |
+| Booking status lifecycle | PENDING → ACCEPTED → PAYMENT_PENDING → PAID → IN_TRANSIT → DELIVERED (or CANCELLED/DISPUTED) | P0 |
+| Driver accepts/declines | Driver can accept (→ ACCEPTED) or decline (→ CANCELLED) a pending booking | P0 |
+| Owner cancels | Cargo owner can cancel at PENDING or ACCEPTED — blocked after payment | P0 |
+| Mark In Transit | Driver marks shipment as IN_TRANSIT once cargo is picked up (only from PAID) | P1 |
+| Mark Delivered | Driver marks shipment as DELIVERED on drop-off (only from IN_TRANSIT) | P1 |
+| Booking detail page | Full booking view with status timeline, payment info, driver contact, actions | P1 |
+| Cargo posting form | Guided form for cargo owners: title, cargo type, weight, origin, destination, date, budget | P1 |
+
+ Payments (Interswitch)
+
+| Feature | Description | Priority |
+|---|---|---|
+| Payment initiation | POST /api/payments/initiate generates Interswitch Quickteller URL | P0 |
+| Interswitch redirect | User redirected to Interswitch hosted checkout (card/bank/USSD) | P0 |
+| Payment verification | POST /api/payments/verify calls Interswitch API to confirm transaction | P0 |
+| Success/failure page | /payment/verify page shows real-time result with booking link or retry option | P0 |
+| Payment retry | If payment fails, booking reverts to ACCEPTED so the owner can try again | P0 |
+| Transaction record | Every payment attempt is persisted with Interswitch reference, amount, channel, status | P0 |
+
+ Dashboards
+
+| Feature | Description | Priority |
+|---|---|---|
+| Cargo owner dashboard | Active shipments, quick actions (Find Driver, Post Cargo), booking history | P0 |
+| Driver dashboard | New requests (accept/decline), active jobs, stats (pending, active, earned) | P0 |
+| Owner Pay Now button | Inline payment button on ACCEPTED bookings — triggers initiate flow | P0 |
+| Driver earnings stats | Total earned (from DELIVERED bookings), trip count on dashboard | P1 |
+
+ Platform
+
+| Feature | Description | Priority |
+|---|---|---|
+| Route-based middleware | Protects all pages: unauthenticated → /login, wrong role → correct dashboard | P0 |
+| Database seed | 4 demo drivers with full profiles, routes across major Nigerian corridors, 2 cargo listings | P0 |
+| Reviews & ratings | Post-delivery 1–5 star rating with optional comment | P2 |
+| Real-time notifications | In-app alerts: booking accepted, payment confirmed, in transit, delivered | P2 |
+| Admin panel | Driver KYC verification, dispute resolution, platform metrics | P2 |
+| In-app chat | Owner–driver messaging during active bookings | P3 |
+| Insurance integration | Cargo insurance add-on at booking checkout | P3 |
+| Route optimisation | Suggest return loads to drivers to reduce deadhead trips | P3 |
+
+ 6. User Stories
+
+ 6.1 Authentication
+
+| ID | Story | Acceptance Criteria | Priority |
+|---|---|---|---|
+| US-01 | As a new user, I want to register as either a Cargo Owner or Truck Driver so that I get the right experience for my role | Role picker shown on register page; role is saved; user lands on correct onboarding or dashboard | P0 |
+| US-02 | As a returning user, I want to log in with email and password so that I can access my account | Valid credentials create a JWT session; redirected to role-appropriate dashboard | P0 |
+| US-03 | As a user, I want to log in with Google so that I don't need to remember a password | OAuth flow completes; role defaults to CARGO_OWNER if first login (can be changed) | P0 |
+| US-04 | As a driver who just registered, I want to be automatically directed to onboarding so I can set up my truck | Middleware checks onboardingComplete; redirects unboarded drivers to /onboarding/driver | P0 |
+
+ 6.2 Driver Onboarding & Profile
+
+| ID | Story | Acceptance Criteria | Priority |
+|---|---|---|---|
+| US-05 | As a driver, I want to enter my truck details (type, model, year, plate, capacity) so cargo owners know what I'm driving | All fields validated; profile saved; truck appears in search results | P0 |
+| US-06 | As a driver, I want to add routes I cover so cargo owners searching those routes can find me | Minimum 1 route required; stored with origin and destination states | P0 |
+| US-07 | As a driver, I want to set my rate per km and minimum charge so owners know my pricing upfront | Rates saved; displayed on driver card in search and on profile page | P0 |
+| US-08 | As a cargo owner, I want to view a driver's full profile — truck, routes, rating, reviews — so I can make an informed booking | Profile page shows all driver details, route list, average rating, and up to 10 recent reviews | P1 |
+
+ 6.3 Search & Matching
+
+| ID | Story | Acceptance Criteria | Priority |
+|---|---|---|---|
+| US-09 | As a cargo owner, I want to search drivers by origin and destination state so I find drivers who cover my route | Results filtered by matching routes; API accepts origin and destination query params | P0 |
+| US-10 | As a cargo owner, I want to filter by truck type so I find the right vehicle for my cargo | Truck type filter applied; only matching type shown | P0 |
+| US-11 | As a cargo owner, I want to filter by minimum capacity so I only see trucks that can carry my load | minCapacity filter applied; drivers with capacity below threshold excluded | P0 |
+| US-12 | As a cargo owner, I want search results sorted by best drivers first so I don't have to manually evaluate every result | Results ordered by avgRating descending, then totalTrips descending | P0 |
+
+ 6.4 Booking
+
+| ID | Story | Acceptance Criteria | Priority |
+|---|---|---|---|
+| US-13 | As a cargo owner, I want to book a driver by specifying agreed amount and pickup date so we have a confirmed arrangement | Booking created in PENDING; duplicate check prevents double-booking same driver for same cargo | P0 |
+| US-14 | As a driver, I want to accept or decline a booking request so I only take jobs I can fulfill | ACCEPT → ACCEPTED with acceptedAt timestamp; DECLINE → CANCELLED with optional reason | P0 |
+| US-15 | As a cargo owner, I want to cancel a booking before payment if my plans change | Cancel allowed at PENDING or ACCEPTED; blocked at PAYMENT_PENDING, PAID, IN_TRANSIT, DELIVERED | P0 |
+| US-16 | As a driver, I want to mark a shipment as In Transit when I collect cargo | Status updates to IN_TRANSIT; only allowed from PAID | P1 |
+| US-17 | As a driver, I want to mark a shipment as Delivered on completion | Status updates to DELIVERED; actualDelivery timestamp recorded; review prompt shown to owner | P1 |
+
+ 6.5 Payments
+
+| ID | Story | Acceptance Criteria | Priority |
+|---|---|---|---|
+| US-18 | As a cargo owner, I want to pay for an accepted booking via card, bank transfer, or USSD so the driver is secured | Interswitch payment URL generated and returned from /api/payments/initiate; user redirected | P0 |
+| US-19 | As a cargo owner, after paying I want to see a clear success or failure message so I know the outcome | /payment/verify page calls verify API; success shows booking confirmation; failure shows retry | P0 |
+| US-20 | As the platform, I want to verify every payment with Interswitch before marking a booking PAID so no fraudulent confirmations occur | Verify API called with OAuth token and SHA-512 hash; ResponseCode "00" required for PAID status | P0 |
+| US-21 | As a cargo owner, if my payment fails I want to retry without losing the booking | FAILED transaction reverts booking to ACCEPTED; retry triggers a new payment initiation | P0 |
+ 
+
+End of Document — LoadLink PRD v1.0
+Enyata × Interswitch Hackathon — Transportation Vertical
