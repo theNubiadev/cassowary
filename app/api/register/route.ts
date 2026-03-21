@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { message: "Account created successfully", user },
+      { message: ` ${user.role} Account created successfully` , user },
       { status: 201 }
     );
   } catch (err) {
