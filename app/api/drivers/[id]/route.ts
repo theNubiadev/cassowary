@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   const profile = await prisma.driverProfile.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { id: true, name: true, email: true, phone: true, image: true, createdAt: true } },
       servicesRoutes: true,
