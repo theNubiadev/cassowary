@@ -6,10 +6,12 @@ import { prisma } from "@/lib/prisma";
 // GET — fetch a single cargo listing
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   const listing = await prisma.cargoListing.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       owner: { select: { id: true, name: true, phone: true, image: true } },
       bookings: {
@@ -29,7 +31,9 @@ export async function GET(
 const updateSchema = z.object({
   title: z.string().min(5).optional(),
   description: z.string().optional(),
-  cargoType: z.enum(["GENERAL","PERISHABLE","FRAGILE","HAZARDOUS","LIVESTOCK","LIQUID","MACHINERY","ELECTRONICS"]).optional(),
+  cargoType: z
+    .enum(["GENERAL","PERISHABLE","FRAGILE","HAZARDOUS","LIVESTOCK","LIQUID","MACHINERY","ELECTRONICS"])
+    .optional(),
   weightTons: z.number().positive().optional(),
   originState: z.string().optional(),
   originCity: z.string().optional(),
@@ -37,8 +41,16 @@ const updateSchema = z.object({
   destState: z.string().optional(),
   destCity: z.string().optional(),
   destAddress: z.string().optional(),
-  requiredTruck: z.enum(["FLATBED","REFRIGERATED","TANKER","CONTAINER","TIPPER","VAN","LOWBED","CURTAINSIDER"]).optional(),
-  neededBy: z.string().transform((s) => new Date(s)).optional(),
+  requiredTruck: z
+    .enum(["FLATBED","REFRIGERATED","TANKER","CONTAINER","TIPPER","VAN","LOWBED","CURTAINSIDER"])
+    .optional(),
+  neededBy: z
+    .string()
+    .refine((s) => !isNaN(Date.parse(s)), {
+      message: 'Invalid date format. Use YYYY-MM-DD — e.g. "2026-04-13"',
+    })
+    .transform((s) => new Date(s))
+    .optional(),
   budget: z.number().positive().optional(),
   isActive: z.boolean().optional(),
 });
@@ -46,16 +58,18 @@ const updateSchema = z.object({
 // PATCH — edit or deactivate a cargo listing
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { id } = await params;
+
   // Confirm the listing belongs to this owner
   const existing = await prisma.cargoListing.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { ownerId: true },
   });
 
@@ -76,7 +90,7 @@ export async function PATCH(
   }
 
   const updated = await prisma.cargoListing.update({
-    where: { id: params.id },
+    where: { id },
     data: parsed.data,
   });
 
@@ -86,15 +100,17 @@ export async function PATCH(
 // DELETE — soft delete by deactivating
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { id } = await params;
+
   const existing = await prisma.cargoListing.findUnique({
-    where: { id: params.id },
+    where: { id },
     select: { ownerId: true },
   });
 
@@ -106,7 +122,7 @@ export async function DELETE(
   }
 
   await prisma.cargoListing.update({
-    where: { id: params.id },
+    where: { id },
     data: { isActive: false },
   });
 
