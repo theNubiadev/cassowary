@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowRight, Truck } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -21,14 +22,16 @@ const signupSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   phone: z.string().min(1, "Phone is required"),
-  role: z.enum(["Driver", "Cargo_Owner"], {
-    required_error: "Please select a role",
-  }),
+  role: z.enum(["Driver", "Cargo_Owner"] as const),
 });
 
 type SignupForm = z.infer<typeof signupSchema>;
 
 export default function Signup() {
+  const [selectedRole, setSelectedRole] = useState<
+    "Driver" | "Cargo_Owner" | ""
+  >("");
+
   const {
     register,
     handleSubmit,
@@ -65,7 +68,13 @@ export default function Signup() {
                 <CardDescription>
                   Find trucks to move your cargo safely
                 </CardDescription>
-                <Button className="rounded-xl bg-[#1E3A8A] px-2 ">
+                <Button
+                  className={`rounded-xl px-2 ${selectedRole === "Cargo_Owner" ? "bg-[#1E3A8A] text-white" : "bg-[#1E3A8A]/80"}`}
+                  onClick={() => {
+                    setSelectedRole("Cargo_Owner");
+                    setValue("role", "Cargo_Owner");
+                  }}
+                >
                   Continue as Shipper
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
@@ -76,7 +85,13 @@ export default function Signup() {
               <Card className="shadow-lg px-6 py-12">
                 <CardTitle>Drive a Truck</CardTitle>
                 <CardDescription>Find deliverly and earn money</CardDescription>
-                <Button className="bg-[#F97316] rounded-xl px-2">
+                <Button
+                  className={`rounded-xl px-2 ${selectedRole === "Driver" ? "bg-[#F97316] text-white" : "bg-[#F97316]/80"}`}
+                  onClick={() => {
+                    setSelectedRole("Driver");
+                    setValue("role", "Driver");
+                  }}
+                >
                   Continue as Driver <Truck className="ml-2 w-4 h-4" />
                 </Button>
               </Card>
@@ -95,7 +110,9 @@ export default function Signup() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className="text-[#1E3A8A]">
+                  Name
+                </Label>
                 <Input
                   id="name"
                   {...register("name")}
@@ -107,7 +124,9 @@ export default function Signup() {
               </div>
 
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-[#1E3A8A]">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -120,7 +139,9 @@ export default function Signup() {
               </div>
 
               <div>
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-[#1E3A8A]">
+                  Password
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -135,7 +156,9 @@ export default function Signup() {
               </div>
 
               <div>
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone" className="text-[#1E3A8A]">
+                  Phone
+                </Label>
                 <Input
                   id="phone"
                   {...register("phone")}
@@ -147,11 +170,16 @@ export default function Signup() {
               </div>
 
               <div>
-                <Label htmlFor="role">Role</Label>
+                <Label htmlFor="role" className="text-[#1E3A8A]">
+                  Role
+                </Label>
                 <Select
-                  onValueChange={(value) =>
-                    setValue("role", value as "Driver" | "Cargo_Owner")
-                  }
+                  value={selectedRole}
+                  onValueChange={(value) => {
+                    const roleValue = value as "Driver" | "Cargo_Owner";
+                    setSelectedRole(roleValue);
+                    setValue("role", roleValue);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select your role" />
@@ -166,7 +194,16 @@ export default function Signup() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button
+                type="submit"
+                className={`w-full ${
+                  selectedRole === "Driver"
+                    ? "bg-[#F97316] text-white hover:bg-orange-500"
+                    : selectedRole === "Cargo_Owner"
+                      ? "bg-[#1E3A8A] text-white hover:bg-blue-900"
+                      : "bg-slate-600 text-white hover:bg-slate-700"
+                }`}
+              >
                 Sign Up
               </Button>
             </form>
