@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -5,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
 } from "@/components/ui/card";
-import Navbar from "@/components/ui/Navbar";
+import Navbar from "@/components/Navbar";
 import {
   Ship,
   LocationEdit,
@@ -15,7 +16,7 @@ import {
   ArrowRight,
   CheckCircle,
 } from "lucide-react";
-
+import Hero from "@/public/hero.jpg";
 export default function Home() {
   return (
     <>
@@ -71,12 +72,8 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="bg-[#F3F4F6] rounded-xl h-96 flex items-center justify-center">
-              {/* <Image src="/hero-image.png" alt="Hero Image" width={600} height={400} /> */}
-              <div className="text-center text-gray-500">
-                <Truck className="w-24 h-24 mx-auto mb-4 text-[#1E3A8A]" />
-                <p>Hero Image Placeholder</p>
-              </div>
+            <div className="bg-[#F3F4F6]  h-96 flex items-center justify-center">
+              <Image src={Hero} alt="Hero Image" width={600} height={400} />
             </div>
           </div>
         </section>
@@ -97,12 +94,8 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <Ship className="text-[#1E3A8A] w-6 h-6" />
-                </div>
-              </CardHeader>
               <CardContent>
+                <Ship className="text-[#1E3A8A] w-6 h-6" />
                 <h3 className="text-[#1E3A8A] font-bold text-lg mb-2">
                   Hard to Find Trucks
                 </h3>
@@ -114,12 +107,8 @@ export default function Home() {
             </Card>
 
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="bg-orange-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <Banknote className="text-[#F97316] w-6 h-6" />
-                </div>
-              </CardHeader>
               <CardContent>
+                <Banknote className="text-[#F97316] w-6 h-6" />
                 <h3 className="text-[#1E3A8A] font-bold text-lg mb-2">
                   Price Uncertainty
                 </h3>
@@ -131,12 +120,8 @@ export default function Home() {
             </Card>
 
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <LocationEdit className="text-green-600 w-6 h-6" />
-                </div>
-              </CardHeader>
               <CardContent>
+                <LocationEdit className="text-green-600 w-6 h-6" />
                 <h3 className="text-[#1E3A8A] font-bold text-lg mb-2">
                   No Real-Time Tracking
                 </h3>
@@ -249,13 +234,9 @@ export default function Home() {
 
           <div className="grid md:grid-cols-4 gap-8">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <Truck className="text-blue-600 w-6 h-6" />
-                </div>
-              </CardHeader>
               <CardContent>
-                <h3 className="text-xl font-bold text-[#1E3A8A] mb-2">
+                <h3 className="text-xl font-bold text-#[#F97316] mb-2 flex">
+                  <Truck className="text-blue-600 w-6 h-6" />
                   Verified Drivers
                 </h3>
                 <p className="text-gray-600">
@@ -265,13 +246,9 @@ export default function Home() {
             </Card>
 
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <Banknote className="text-green-600 w-6 h-6" />
-                </div>
-              </CardHeader>
               <CardContent>
-                <h3 className="text-xl font-bold text-[#1E3A8A] mb-2">
+                <h3 className="text-xl font-bold text-[#F97316] mb-2 flex">
+                  <Banknote className="text-green-600 w-6 h-6" />
                   Transparent Pricing
                 </h3>
                 <p className="text-gray-600">
@@ -281,14 +258,10 @@ export default function Home() {
             </Card>
 
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <Banknote className="text-green-600 w-6 h-6" />
-                </div>
-              </CardHeader>
               <CardContent>
-                <h3 className="text-xl font-bold text-[#1E3A8A] mb-2">
-                  Real-time Tracking
+                <h3 className="text-xl font-bold text-[#F97316] mb-2 flex">
+                  <Banknote className="text-green-600 w-6 h-6" /> Real-time
+                  Tracking
                 </h3>
                 <p className="text-gray-600">
                   Make secure payments via Interswitch with ease.
@@ -297,13 +270,9 @@ export default function Home() {
             </Card>
 
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                  <LocationEdit className="text-purple-600 w-6 h-6" />
-                </div>
-              </CardHeader>
               <CardContent>
-                <h3 className="text-xl font-bold text-[#1E3A8A] mb-2">
+                <h3 className="text-xl font-bold text-[#F97316] mb-2 flex">
+                  <LocationEdit className="text-purple-600 w-6 h-6" />
                   Secure Payment
                 </h3>
                 <p className="text-gray-600">
