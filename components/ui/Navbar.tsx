@@ -1,27 +1,48 @@
+import { Button } from "./button";
+
 export default function Navbar() {
   return (
-    <header className="bg-[#F3F4F6] text-slate-800 border-b border-slate-200">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a href="#" className="flex items-center gap-2 text-xl font-bold tracking-tight text-slate-900">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 text-white">L</span>
-          <span>Loadlink</span>
-        </a>
+    <header className="bg-[#F3F4F6] w-full shadow-sm">
+      <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <div className="flex-shrink-0">
+          <h1 className="text-[#1E3A8A] text-3xl font-bold  font-inter tracking-tight">
+            LoadLink
+          </h1>
+        </div>
 
-        <nav className="hidden items-center gap-2 text-sm font-medium sm:flex">
-          <a href="#how-it-works" className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900">How It Works</a>
-          <a href="#for-shippers" className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900">For Shippers</a>
-          <a href="#for-drivers" className="rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900">For Drivers</a>
-        </nav>
-
-        <div className="flex items-center gap-2">
+        {/* Nav Items */}
+        <div className="hidden md:flex items-center space-x-8">
           <a
-            href="#signup"
-            className="rounded-lg border border-blue-500 bg-white px-4 py-2 text-sm font-semibold text-blue-600 transition-colors duration-200 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            href="#how-it-works"
+            className="text-[#1E3A8A] font-medium hover:text-blue-700 transition-colors duration-200"
           >
-            Signup
+            How It Works
+          </a>
+          <a
+            href="#for-shippers"
+            className="text-[#1E3A8A] font-medium hover:text-blue-700 transition-colors duration-200"
+          >
+            For Shippers
+          </a>
+          <a
+            href="#for-drivers"
+            className="text-[#1E3A8A] font-medium hover:text-blue-700 transition-colors duration-200"
+          >
+            For Drivers
           </a>
         </div>
-      </div>
+
+        {/* Signup Button */}
+        <div className="flex-shrink-0">
+          <Button
+            variant="default"
+            className="bg-[#1E3A8A] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-900 transition-colors duration-200 shadow-md hover:shadow-lg"
+          >
+            Sign Up
+          </Button>
+        </div>
+      </nav>
     </header>
   );
 }
