@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Link from "next/link";
+import { FieldDescription } from "@/components/ui/field";
 import { ArrowRight, Truck, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -118,6 +120,13 @@ export default function Signup() {
             </div>
           </div>
         </div>
+        <FieldDescription className="text-black text-center py-4">
+          Dont have an Account{" "}
+          <Link href="/signin" className="text-[#1E3A8A]">
+            {" "}
+            Signin
+          </Link>
+        </FieldDescription>
       </div>
 
       {/* Modal Overlay */}
