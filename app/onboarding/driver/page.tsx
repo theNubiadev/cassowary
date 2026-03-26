@@ -11,11 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, ArrowLeft, Truck, Plus, X } from "lucide-react";
+import { ArrowRight, ArrowLeft, Truck, Plus, X, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import * as z from "zod";
 
 const NIGERIAN_STATES = [
@@ -71,35 +72,23 @@ const TRUCK_TYPES = [
 
 const truckSchema = z.object({
   truckType: z.string().min(1, { message: "Truck type is required" }),
-
   truckModel: z.string().min(2, { message: "Truck model is required" }),
-
   truckYear: z.coerce
     .number()
     .int({ message: "Year must be an integer" })
     .min(2000, { message: "Year must be 2000 or later" })
-    .max(new Date().getFullYear() + 1, {
-      message: "Year is invalid",
-    }),
-
-  plateNumber: z.string().min(5, {
-    message: "Enter a valid plate number",
-  }),
-
+    .max(new Date().getFullYear() + 1, { message: "Year is invalid" }),
+  plateNumber: z.string().min(5, { message: "Enter a valid plate number" }),
   capacityTons: z.coerce
     .number()
     .positive({ message: "Capacity must be greater than 0" }),
-
   baseState: z.string().min(1, { message: "Base state is required" }),
-
   baseCity: z.string().min(1, { message: "Base city is required" }),
-
   yearsExperience: z.coerce
     .number()
     .int()
     .min(0, { message: "Experience cannot be negative" })
     .optional(),
-
   bio: z.string().optional(),
 });
 
@@ -107,7 +96,6 @@ const ratesSchema = z.object({
   ratePerKm: z.coerce
     .number()
     .positive({ message: "Rate must be greater than 0" }),
-
   minimumCharge: z.coerce
     .number()
     .positive({ message: "Minimum charge must be greater than 0" }),
@@ -125,6 +113,8 @@ const steps = [
 
 export default function DriverOnboarding() {
   const router = useRouter();
+  const { update } = useSession(); // refreshes JWT after onboarding completes
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -140,6 +130,8 @@ export default function DriverOnboarding() {
   const ratesForm = useForm<RatesForm>({
     resolver: zodResolver(ratesSchema),
   });
+
+  // ── Route helpers ──────────────────────────────────────────────────────────
 
   function addRoute() {
     setRoutes([
@@ -159,9 +151,12 @@ export default function DriverOnboarding() {
     );
   }
 
+  // ── Final submit (step 3) ─────────────────────────────────────────────────
+
   async function handleFinalSubmit(ratesData: RatesForm) {
     setError("");
     setLoading(true);
+
     const truckData = truckForm.getValues();
     const validRoutes = routes.filter((r) => r.originState && r.destState);
 
@@ -182,11 +177,17 @@ export default function DriverOnboarding() {
           routes: validRoutes,
         }),
       });
-      const data = await res.json();
+
+      const json = await res.json();
+
       if (!res.ok) {
-        setError(data.error || "Failed to save profile. Please try again.");
+        setError(json.error || "Failed to save profile. Please try again.");
         return;
       }
+
+      // Refresh JWT so onboardingComplete flips to true
+      await update();
+
       router.push("/dashboard/driver");
     } catch {
       setError("Network error. Please check your connection.");
@@ -194,6 +195,8 @@ export default function DriverOnboarding() {
       setLoading(false);
     }
   }
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -251,7 +254,7 @@ export default function DriverOnboarding() {
             </div>
           )}
 
-          {/* ── STEP 1: Truck Details ── */}
+          {/* ── STEP 1: Truck Details ─────────────────────────────────────── */}
           {step === 1 && (
             <Card className="shadow-lg p-6">
               <CardTitle className="mb-1">Your Truck Details</CardTitle>
@@ -266,6 +269,7 @@ export default function DriverOnboarding() {
                 })}
                 className="space-y-4"
               >
+                {/* Truck Type */}
                 <div>
                   <Label className="text-[#1E3A8A]">Truck Type</Label>
                   <Select
@@ -287,12 +291,13 @@ export default function DriverOnboarding() {
                     </SelectContent>
                   </Select>
                   {truckForm.formState.errors.truckType && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {truckForm.formState.errors.truckType.message}
                     </p>
                   )}
                 </div>
 
+                {/* Model + Year */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-[#1E3A8A]">Truck Model</Label>
@@ -301,7 +306,7 @@ export default function DriverOnboarding() {
                       placeholder="e.g. Mack Granite"
                     />
                     {truckForm.formState.errors.truckModel && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {truckForm.formState.errors.truckModel.message}
                       </p>
                     )}
@@ -316,13 +321,14 @@ export default function DriverOnboarding() {
                       placeholder="2020"
                     />
                     {truckForm.formState.errors.truckYear && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {truckForm.formState.errors.truckYear.message}
                       </p>
                     )}
                   </div>
                 </div>
 
+                {/* Plate + Capacity */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-[#1E3A8A]">Plate Number</Label>
@@ -331,7 +337,7 @@ export default function DriverOnboarding() {
                       placeholder="LAG-123-AB"
                     />
                     {truckForm.formState.errors.plateNumber && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {truckForm.formState.errors.plateNumber.message}
                       </p>
                     )}
@@ -347,13 +353,14 @@ export default function DriverOnboarding() {
                       placeholder="15"
                     />
                     {truckForm.formState.errors.capacityTons && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {truckForm.formState.errors.capacityTons.message}
                       </p>
                     )}
                   </div>
                 </div>
 
+                {/* Base State + City */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-[#1E3A8A]">Base State</Label>
@@ -376,7 +383,7 @@ export default function DriverOnboarding() {
                       </SelectContent>
                     </Select>
                     {truckForm.formState.errors.baseState && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {truckForm.formState.errors.baseState.message}
                       </p>
                     )}
@@ -388,13 +395,14 @@ export default function DriverOnboarding() {
                       placeholder="e.g. Apapa"
                     />
                     {truckForm.formState.errors.baseCity && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {truckForm.formState.errors.baseCity.message}
                       </p>
                     )}
                   </div>
                 </div>
 
+                {/* Experience */}
                 <div>
                   <Label className="text-[#1E3A8A]">Years of Experience</Label>
                   <Input
@@ -405,14 +413,20 @@ export default function DriverOnboarding() {
                     })}
                     placeholder="5"
                   />
+                  {truckForm.formState.errors.yearsExperience && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {truckForm.formState.errors.yearsExperience.message}
+                    </p>
+                  )}
                 </div>
 
+                {/* Bio */}
                 <div>
                   <Label className="text-[#1E3A8A]">Bio (optional)</Label>
                   <textarea
                     {...truckForm.register("bio")}
                     rows={3}
-                    placeholder="Tell cargo owners about your experience..."
+                    placeholder="Tell cargo owners about your experience…"
                     className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316]"
                   />
                 </div>
@@ -427,7 +441,7 @@ export default function DriverOnboarding() {
             </Card>
           )}
 
-          {/* ── STEP 2: Routes ── */}
+          {/* ── STEP 2: Routes ────────────────────────────────────────────── */}
           {step === 2 && (
             <Card className="shadow-lg p-6">
               <CardTitle className="mb-1">Routes You Cover</CardTitle>
@@ -448,6 +462,7 @@ export default function DriverOnboarding() {
                       </span>
                       {routes.length > 1 && (
                         <button
+                          type="button"
                           onClick={() => removeRoute(i)}
                           className="text-gray-400 hover:text-red-500 transition-colors"
                         >
@@ -455,6 +470,7 @@ export default function DriverOnboarding() {
                         </button>
                       )}
                     </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label className="text-[#1E3A8A] text-xs">
@@ -499,6 +515,7 @@ export default function DriverOnboarding() {
                         </Select>
                       </div>
                     </div>
+
                     <div>
                       <Label className="text-[#1E3A8A] text-xs">
                         Estimated Transit Days
@@ -521,6 +538,7 @@ export default function DriverOnboarding() {
                 ))}
 
                 <button
+                  type="button"
                   onClick={addRoute}
                   className="w-full py-2.5 rounded-xl border border-dashed border-gray-300 text-sm text-gray-500 hover:border-[#F97316] hover:text-[#F97316] transition-colors flex items-center justify-center gap-2"
                 >
@@ -558,7 +576,7 @@ export default function DriverOnboarding() {
             </Card>
           )}
 
-          {/* ── STEP 3: Rates ── */}
+          {/* ── STEP 3: Rates ─────────────────────────────────────────────── */}
           {step === 3 && (
             <Card className="shadow-lg p-6">
               <CardTitle className="mb-1">Your Transport Rates</CardTitle>
@@ -582,10 +600,10 @@ export default function DriverOnboarding() {
                     placeholder="e.g. 300"
                   />
                   <p className="text-xs text-gray-400 mt-1">
-                    Tip: Lagos to Abuja is ~800km. At ₦300/km = ₦240,000
+                    Tip: Lagos to Abuja is ~800 km. At ₦300/km = ₦240,000
                   </p>
                   {ratesForm.formState.errors.ratePerKm && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {ratesForm.formState.errors.ratePerKm.message}
                     </p>
                   )}
@@ -605,7 +623,7 @@ export default function DriverOnboarding() {
                     Minimum amount you charge regardless of distance
                   </p>
                   {ratesForm.formState.errors.minimumCharge && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {ratesForm.formState.errors.minimumCharge.message}
                     </p>
                   )}
@@ -625,7 +643,14 @@ export default function DriverOnboarding() {
                     disabled={loading}
                     className="flex-[2] bg-[#F97316] text-white hover:bg-orange-500 disabled:opacity-60"
                   >
-                    {loading ? "Saving..." : "Complete Setup 🎉"}
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />{" "}
+                        Saving…
+                      </>
+                    ) : (
+                      "Complete Setup 🎉"
+                    )}
                   </Button>
                 </div>
               </form>

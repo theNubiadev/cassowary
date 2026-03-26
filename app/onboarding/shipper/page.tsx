@@ -11,10 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight, Package } from "lucide-react";
+import { ArrowRight, Package, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import * as z from "zod";
 
@@ -96,7 +97,7 @@ const listingSchema = z.object({
     .string()
     .min(1, "Date is required")
     .refine((s) => !isNaN(Date.parse(s)), {
-      message: "Invalid date format. Use YYYY-MM-DD",
+      message: "Invalid date format",
     }),
   budget: z
     .number({ invalid_type_error: "Budget must be a number" })
@@ -108,6 +109,7 @@ type ListingForm = z.infer<typeof listingSchema>;
 
 export default function CargoOwnerOnboarding() {
   const router = useRouter();
+  const { update } = useSession(); // used to refresh session after onboarding
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -144,8 +146,11 @@ export default function CargoOwnerOnboarding() {
         return;
       }
 
+      // Refresh the JWT so onboardingComplete flips to true
+      await update();
+
       setSuccess(true);
-      setTimeout(() => router.push("/dashboard/owner"), 1500);
+      setTimeout(() => router.push("/dashboard/shipper"), 1500);
     } catch {
       setError("Network error. Please check your connection.");
     } finally {
@@ -164,45 +169,46 @@ export default function CargoOwnerOnboarding() {
               <Package className="w-7 h-7 text-[#1E3A8A]" />
             </div>
             <h2 className="text-3xl font-bold mb-2 text-[#1E3A8A]">
-              Post Your First Cargo
+              Post Your Cargo
             </h2>
             <p className="text-gray-500">
-              Tell us what you need to move and we'll match you with the right
-              driver
+              Tell us what you need to move and we&apos;ll match you with the
+              right driver
             </p>
           </div>
 
-          {/* Error */}
+          {/* Error banner */}
           {error && (
             <div className="mb-4 px-4 py-3 rounded-lg text-sm text-red-600 bg-red-50 border border-red-200">
               {error}
             </div>
           )}
 
-          {/* Success */}
+          {/* Success banner */}
           {success && (
             <div className="mb-4 px-4 py-3 rounded-lg text-sm text-green-700 bg-green-50 border border-green-200">
-              ✓ Cargo posted successfully! Redirecting to your dashboard...
+              ✓ Cargo posted successfully! Redirecting to your dashboard…
             </div>
           )}
 
           <Card className="shadow-lg p-6">
-            <CardTitle className=" ">Cargo Details</CardTitle>
-            <CardDescription className="">
+            <CardTitle>Cargo Details</CardTitle>
+            <CardDescription className="mb-4">
               Fill in the details of the shipment you need to move
             </CardDescription>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Title */}
               <div>
-                <Label className="text-[#1E3A8A] p-2">Shipment Title</Label>
+                <Label className="text-[#1E3A8A]">Shipment Title</Label>
                 <Input
                   {...register("title")}
-                  className="mt-4"
                   placeholder="e.g. 50 bags of rice — Lagos to Abuja"
                 />
                 {errors.title && (
-                  <p className="text-red-500 text-sm">{errors.title.message}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.title.message}
+                  </p>
                 )}
               </div>
 
@@ -212,7 +218,7 @@ export default function CargoOwnerOnboarding() {
                 <textarea
                   {...register("description")}
                   rows={2}
-                  placeholder="Any special handling instructions or extra details..."
+                  placeholder="Any special handling instructions or extra details…"
                   className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A]"
                 />
               </div>
@@ -238,7 +244,7 @@ export default function CargoOwnerOnboarding() {
                     </SelectContent>
                   </Select>
                   {errors.cargoType && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors.cargoType.message}
                     </p>
                   )}
@@ -253,7 +259,7 @@ export default function CargoOwnerOnboarding() {
                     placeholder="e.g. 2.5"
                   />
                   {errors.weightTons && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors.weightTons.message}
                     </p>
                   )}
@@ -282,7 +288,7 @@ export default function CargoOwnerOnboarding() {
                       </SelectContent>
                     </Select>
                     {errors.originState && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {errors.originState.message}
                       </p>
                     )}
@@ -293,7 +299,7 @@ export default function CargoOwnerOnboarding() {
                       placeholder="City / Area"
                     />
                     {errors.originCity && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {errors.originCity.message}
                       </p>
                     )}
@@ -323,7 +329,7 @@ export default function CargoOwnerOnboarding() {
                       </SelectContent>
                     </Select>
                     {errors.destState && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {errors.destState.message}
                       </p>
                     )}
@@ -334,7 +340,7 @@ export default function CargoOwnerOnboarding() {
                       placeholder="City / Area"
                     />
                     {errors.destCity && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-red-500 text-sm mt-1">
                         {errors.destCity.message}
                       </p>
                     )}
@@ -345,9 +351,7 @@ export default function CargoOwnerOnboarding() {
               {/* Preferred Truck + Needed By */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-[#1E3A8A]">
-                    Preferred Truck (optional)
-                  </Label>
+                  <Label className="text-[#1E3A8A]">Preferred Truck</Label>
                   <Select onValueChange={(v) => setValue("requiredTruck", v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Any truck" />
@@ -369,7 +373,7 @@ export default function CargoOwnerOnboarding() {
                     min={new Date().toISOString().split("T")[0]}
                   />
                   {errors.neededBy && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-red-500 text-sm mt-1">
                       {errors.neededBy.message}
                     </p>
                   )}
@@ -389,7 +393,7 @@ export default function CargoOwnerOnboarding() {
                   Leave blank if you want to negotiate with drivers
                 </p>
                 {errors.budget && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-sm mt-1">
                     {errors.budget.message}
                   </p>
                 )}
@@ -400,8 +404,16 @@ export default function CargoOwnerOnboarding() {
                 disabled={loading || success}
                 className="w-full bg-[#1E3A8A] text-white hover:bg-blue-900 disabled:opacity-60"
               >
-                {loading ? "Posting..." : "Post Cargo & Find Drivers"}
-                <ArrowRight className="ml-2 w-4 h-4" />
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 w-4 h-4 animate-spin" /> Posting…
+                  </>
+                ) : (
+                  <>
+                    Post Cargo &amp; Find Drivers{" "}
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </>
+                )}
               </Button>
 
               <p className="text-center text-xs text-gray-400">
@@ -409,6 +421,24 @@ export default function CargoOwnerOnboarding() {
               </p>
             </form>
           </Card>
+
+          <div className="mt-10 text-center">
+            <p className="text-gray-500">
+              Need help or want to learn how to get the most out of Cassowary?
+            </p>
+            <Button
+              asChild
+              className="mt-3 bg-transparent border border-[#1E3A8A] text-[#1E3A8A] hover:bg-[#1E3A8A]/5"
+            >
+              <a
+                href="/dashboard/shipper"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Go to Dashboard &amp; Manage Your Shipments
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     </>

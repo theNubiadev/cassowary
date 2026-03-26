@@ -465,11 +465,11 @@ export default function OwnerDashboard() {
                 <h2 className="font-semibold text-gray-900">
                   My Cargo Listings
                 </h2>
-                <Link href="/onboarding/owner">
+                {/* <Link href="/onboarding/owner">
                   <Button variant="outline" size="sm" className="h-7 text-xs">
                     <Plus className="w-3 h-3 mr-1" /> New
                   </Button>
-                </Link>
+                </Link> */}
               </div>
               <div className="space-y-2">
                 {listings.map((l) => (
