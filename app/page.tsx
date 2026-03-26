@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +16,7 @@ import {
   Truck,
   ArrowRight,
   CheckCircle,
+  Package,
 } from "lucide-react";
 import Hero from "@/public/hero.jpg";
 export default function Home() {
@@ -35,14 +37,18 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <Button className="bg-[#1E3A8A] text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-900 transition-colors flex items-center">
-                  Ship a Load
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-                <Button className="bg-[#F97316] text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center">
-                  Find Delivery Jobs
-                  <Truck className="ml-2 w-4 h-4" />
-                </Button>
+                <Link href="/signup">
+                  <Button className="bg-[#1E3A8A] text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-900 transition-colors flex items-center">
+                    Ship a Load
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="bg-[#F97316] text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors flex items-center">
+                    Find Delivery Jobs
+                    <Truck className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -153,13 +159,14 @@ export default function Home() {
                 <div className="w-10 h-10 bg-[#1E3A8A] text-white rounded-full flex items-center justify-center font-bold mb-3">
                   1
                 </div>
+
                 <h3 className="text-[#1E3A8A] font-bold text-lg">
                   Post Your Shipment
                 </h3>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 flex items-start space-x-2">
-                  <Ship className="text-[#1E3A8A] flex-shrink-0 mt-1 w-4 h-4" />
+                  <Package className="text-[#1E3A8A] flex-shrink-0 mt-1 w-4 h-4" />
                   <span>Provide shipment details and destination</span>
                 </p>
               </CardContent>

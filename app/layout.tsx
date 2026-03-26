@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Quicksand, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import Providers from "@/components/Provider";
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -23,7 +23,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className={`${quicksand.variable} antialiased`}>{children}</body>
+      <Providers>
+        <body className={`${quicksand.variable} antialiased`}>{children}</body>
+      </Providers>
     </html>
   );
 }
