@@ -211,8 +211,8 @@ export default function OwnerDashboard() {
         {/* ── Header ── */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Welcome back, {session?.user?.name?.split(" ")[0] ?? "there"} 👋
+            <h1 className="text-2xl font-bold text-gray-900 capitalize">
+              Welcome back, {session?.user?.name?.split(" ")[0] ?? "there"}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
               Manage your shipments and find drivers
@@ -270,21 +270,6 @@ export default function OwnerDashboard() {
 
         {/* ── Quick Actions ── */}
         <div className="grid grid-cols-2 gap-3 mb-8">
-          {/* <Link href="/search">
-            <Card className="p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-[#1E3A8A]/10 flex items-center justify-center group-hover:bg-[#1E3A8A]/20 transition-colors">
-                <Search className="w-5 h-5 text-[#1E3A8A]" />
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-gray-900">
-                  Find Drivers
-                </p>
-                <p className="text-xs text-gray-500">Browse available trucks</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-[#1E3A8A] transition-colors" />
-            </Card>
-          </Link> */}
-
           <Card
             onClick={() => setOpenSearch(true)}
             className="p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3 group"
@@ -302,21 +287,6 @@ export default function OwnerDashboard() {
 
             <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-[#1E3A8A] transition-colors" />
           </Card>
-          {/* <Link href="/onboarding/owner">
-            <Card className="p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl bg-[#F97316]/10 flex items-center justify-center group-hover:bg-[#F97316]/20 transition-colors">
-                <Plus className="w-5 h-5 text-[#F97316]" />
-              </div>
-              <div>
-                <p className="font-semibold text-sm text-gray-900">
-                  Post Cargo
-                </p>
-                <p className="text-xs text-gray-500">Create a new listing</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-[#F97316] transition-colors" />
-            </Card>
-          </Link>
-        </div> */}
           <Card
             onClick={() => setOpenPostCargo(true)}
             className="p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3 group"
@@ -324,12 +294,10 @@ export default function OwnerDashboard() {
             <div className="w-10 h-10 rounded-xl bg-[#F97316]/10 flex items-center justify-center group-hover:bg-[#F97316]/20 transition-colors">
               <Plus className="w-5 h-5 text-[#F97316]" />
             </div>
-
             <div>
               <p className="font-semibold text-sm text-gray-900">Post Cargo</p>
               <p className="text-xs text-gray-500">Create a new listing</p>
             </div>
-
             <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-[#F97316] transition-colors" />
           </Card>
 
