@@ -255,7 +255,7 @@ export async function PUT(req: NextRequest) {
 
     const { routes, ...profileData } = parsed.data;
 
-    const profile = await prisma.$transaction(async (tx) => {
+    const profile = await prisma.$transaction(async (tx: any) => {
       const p = await tx.driverProfile.update({
         where: { userId: session.user.id },
         data:  profileData,
