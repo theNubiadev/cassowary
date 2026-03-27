@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String         @id @default(cuid())
+  name               String?
+  email              String         @unique
+  emailVerified      DateTime?
+  password           String?
+  phone              String?
+  image              String?
+  role               Role           @default(CARGO_OWNER)
+  onboardingComplete Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  accounts           Account[]
+  bookingsAsDriver   Booking[]      @relation("DriverBookings")
+  bookingsAsOwner    Booking[]      @relation("OwnerBookings")
+  cargoListings      CargoListing[]
+  driverProfile      DriverProfile?
+  reviewsGiven       Review[]       @relation("ReviewsGiven")
+  reviewsReceived    Review[]       @relation("ReviewsReceived")
+  sessions           Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model DriverProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  licenseNumber   String?
+  licenseExpiry   DateTime?
+  yearsExperience Int       @default(0)
+  bio             String?
+  isVerified      Boolean   @default(false)
+  isAvailable     Boolean   @default(true)
+  truckType       TruckType
+  truckModel      String
+  truckYear       Int
+  plateNumber     String    @unique
+  capacityTons    Float
+  lengthMeters    Float?
+  ratePerKm       Float
+  minimumCharge   Float
+  baseState       String
+  baseCity        String
+  totalTrips      Int       @default(0)
+  avgRating       Float     @default(0)
+  totalEarnings   Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  bookings        Booking[]
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  servicesRoutes  Route[]
+}
+
+model Route {
+  id              String        @id @default(cuid())
+  driverProfileId String
+  originState     String
+  originCity      String?
+  destState       String
+  destCity        String?
+  estimatedDays   Int           @default(1)
+  createdAt       DateTime      @default(now())
+  driverProfile   DriverProfile @relation(fields: [driverProfileId], references: [id], onDelete: Cascade)
+}
+
+model CargoListing {
+  id            String     @id @default(cuid())
+  ownerId       String
+  title         String
+  description   String?
+  cargoType     CargoType  @default(GENERAL)
+  weightTons    Float
+  lengthMeters  Float?
+  originState   String
+  originCity    String
+  originAddress String?
+  destState     String
+  destCity      String
+  destAddress   String?
+  requiredTruck TruckType?
+  neededBy      DateTime
+  budget        Float?
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  bookings      Booking[]
+  owner         User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  cargoListingId    String
+  ownerId           String
+  driverId          String
+  driverProfileId   String
+  status            BookingStatus @default(PENDING)
+  agreedAmount      Float
+  commission        Float         @default(0)
+  amount            Float         @default(0)
+  pickupDate        DateTime
+  estimatedDelivery DateTime?
+  actualDelivery    DateTime?
+  notes             String?
+  acceptedAt        DateTime?
+  declinedAt        DateTime?
+  declineReason     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  cargoListing      CargoListing  @relation(fields: [cargoListingId], references: [id])
+  driver            User          @relation("DriverBookings", fields: [driverId], references: [id])
+  driverProfile     DriverProfile @relation(fields: [driverProfileId], references: [id])
+  owner             User          @relation("OwnerBookings", fields: [ownerId], references: [id])
+  review            Review?
+  transaction       Transaction?
+}
+
+model Transaction {
+  id                   String            @id @default(cuid())
+  bookingId            String            @unique
+  merchantCode         String
+  payItemId            String
+  transactionReference String            @unique
+  paymentReference     String?
+  amount               Float
+  amountKobo           Int
+  currency             String            @default("566")
+  status               TransactionStatus @default(INITIATED)
+  channel              String?
+  responseCode         String?
+  responseDescription  String?
+  initiatedAt          DateTime          @default(now())
+  completedAt          DateTime?
+  updatedAt            DateTime          @updatedAt
+  booking              Booking           @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  giverId    String
+  receiverId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  giver      User     @relation("ReviewsGiven", fields: [giverId], references: [id])
+  receiver   User     @relation("ReviewsReceived", fields: [receiverId], references: [id])
+}
+
+enum Role {
+  DRIVER
+  CARGO_OWNER
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  PAYMENT_PENDING
+  PAID
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+  DISPUTED
+}
+
+enum TransactionStatus {
+  INITIATED
+  SUCCESSFUL
+  FAILED
+  REVERSED
+}
+
+enum TruckType {
+  FLATBED
+  REFRIGERATED
+  TANKER
+  CONTAINER
+  TIPPER
+  VAN
+  LOWBED
+  CURTAINSIDER
+}
+
+enum CargoType {
+  GENERAL
+  PERISHABLE
+  FRAGILE
+  HAZARDOUS
+  LIVESTOCK
+  LIQUID
+  MACHINERY
+  ELECTRONICS
+}
