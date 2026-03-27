@@ -25,8 +25,8 @@ type SigninForm = z.infer<typeof signinSchema>;
 // ─── Role-based redirect map ──────────────────────────────────────────────────
 
 const ROLE_REDIRECT: Record<string, string> = {
-  DRIVER: "/onboarding/driver",
-  CARGO_OWNER: "/onboarding/shipper",
+  DRIVER: "/dashboard/driver",
+  CARGO_OWNER: "/dashboard/shipper",
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────

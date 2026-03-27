@@ -1,4 +1,5 @@
 "use client";
+import Script from "next/script";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import {
   AlertCircle,
   Star,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 interface Booking {
   id: string;
@@ -165,6 +167,8 @@ export default function BookingDetailPage() {
   const [reviewForm, setReviewForm] = useState({ rating: 0, comment: "" });
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const searchParams = useSearchParams();
+  const paymentResult = searchParams.get("payment");
 
   const fetchBooking = async () => {
     try {
@@ -194,17 +198,54 @@ export default function BookingDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId }),
       });
+
       const data = await res.json();
-      if (data.paymentUrl) {
-        window.location.href = data.paymentUrl;
-      } else {
-        alert(data.error || "Payment initiation failed.");
+      console.log("Initiate response:", data);
+
+      if (!res.ok || data.error) {
+        alert(data?.error || "Payment initiation failed");
+        return;
       }
+
+      if (
+        !data.merchantCode ||
+        !data.payItemId ||
+        !data.txnRef ||
+        !data.amount
+      ) {
+        console.error("Missing payment fields:", data);
+        alert("Payment configuration error. Please contact support.");
+        return;
+      }
+
+      if (typeof window !== "undefined" && (window as any).webpayCheckout) {
+        (window as any).webpayCheckout({
+          merchant_code: String(data.merchantCode),
+          pay_item_id: String(data.payItemId),
+          txn_ref: String(data.txnRef),
+          amount: Number(data.amount),
+          currency: "566",
+          site_redirect_url: `${window.location.origin}/api/payments/callback`,
+          onComplete: function (response: any) {
+            console.log("Payment complete:", response);
+            window.location.href = `/dashboard/bookings/${bookingId}?payment=success`;
+          },
+          onClose: function () {
+            console.log("Payment modal closed");
+            setPayLoading(false);
+          },
+        });
+      } else {
+        // Fallback: redirect flow if SDK not loaded
+        window.location.href = data.paymentUrl;
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong. Please try again.");
     } finally {
       setPayLoading(false);
     }
   }
-
   async function handleAction(action: string) {
     setActionLoading(action);
     await fetch(`/api/bookings/${bookingId}`, {
@@ -282,6 +323,10 @@ export default function BookingDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
+      <Script
+        src="https://newwebpay.qa.interswitchng.com/inline-checkout.js"
+        strategy="afterInteractive"
+      />
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* ── Back + Header ── */}
         <div className="flex items-center gap-3 mb-6">
@@ -302,6 +347,22 @@ export default function BookingDetailPage() {
           </span>
         </div>
 
+        {paymentResult === "success" && (
+          <div className="mb-4 px-4 py-3 rounded-xl border border-green-200 bg-green-50 flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+            <p className="text-sm text-green-700 font-medium">
+              Payment successful! Your shipment is confirmed.
+            </p>
+          </div>
+        )}
+        {paymentResult === "failed" && (
+          <div className="mb-4 px-4 py-3 rounded-xl border border-red-200 bg-red-50 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+            <p className="text-sm text-red-600">
+              Payment was not successful. Please try again.
+            </p>
+          </div>
+        )}
         {/* ── Status Timeline (hidden if cancelled) ── */}
         {!isCancelled && (
           <Card className="p-5 shadow-sm mb-4">
@@ -372,7 +433,7 @@ export default function BookingDetailPage() {
         {!isCancelled && (
           <div className="flex flex-wrap gap-2 mb-4">
             {/* Pay Now — owner, ACCEPTED */}
-            {isOwner && booking.status === "ACCEPTED" && (
+            {/* {isOwner && booking.status === "ACCEPTED" && (
               <Button
                 className="bg-[#1E3A8A] text-white hover:bg-blue-900 flex-1"
                 disabled={payLoading}
@@ -383,8 +444,22 @@ export default function BookingDetailPage() {
                   ? "Redirecting to payment..."
                   : "Pay Now — ₦" + booking.agreedAmount.toLocaleString()}
               </Button>
-            )}
+            )} */}
 
+            {/* Pay Now — owner, ACCEPTED or PAYMENT_PENDING (retry) */}
+            {isOwner &&
+              ["ACCEPTED", "PAYMENT_PENDING"].includes(booking.status) && (
+                <Button
+                  className="bg-[#1E3A8A] text-white hover:bg-blue-900 flex-1"
+                  disabled={payLoading}
+                  onClick={handlePay}
+                >
+                  <CircleDollarSign className="w-4 h-4 mr-2" />
+                  {payLoading
+                    ? "Loading payment..."
+                    : "Pay Now — ₦" + booking.agreedAmount.toLocaleString()}
+                </Button>
+              )}
             {/* Cancel — owner, before payment */}
             {isOwner && ["PENDING", "ACCEPTED"].includes(booking.status) && (
               <Button
@@ -561,15 +636,6 @@ export default function BookingDetailPage() {
                 value={`₦${booking.driverProfile.ratePerKm.toLocaleString()}/km`}
               />
             </div>
-            <Link href={`/drivers/${booking.driverProfile.id}`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-3 h-7 text-xs"
-              >
-                View Driver Profile
-              </Button>
-            </Link>
           </Card>
 
           {/* ── Booking Summary ── */}
@@ -649,16 +715,17 @@ export default function BookingDetailPage() {
               <div className="text-center py-4">
                 <CircleDollarSign className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                 <p className="text-xs text-gray-400">No payment yet</p>
-                {isOwner && booking.status === "ACCEPTED" && (
-                  <Button
-                    size="sm"
-                    className="mt-3 bg-[#1E3A8A] text-white hover:bg-blue-900 h-7 text-xs"
-                    disabled={payLoading}
-                    onClick={handlePay}
-                  >
-                    {payLoading ? "Redirecting..." : "Pay Now 💳"}
-                  </Button>
-                )}
+                {isOwner &&
+                  ["ACCEPTED", "PAYMENT_PENDING"].includes(booking.status) && (
+                    <Button
+                      size="sm"
+                      className="mt-3 bg-[#1E3A8A] text-white hover:bg-blue-900 h-7 text-xs"
+                      disabled={payLoading}
+                      onClick={handlePay}
+                    >
+                      {payLoading ? "Loading..." : "Pay Now"}
+                    </Button>
+                  )}
               </div>
             )}
           </Card>
