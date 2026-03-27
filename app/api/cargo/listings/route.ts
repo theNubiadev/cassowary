@@ -73,9 +73,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Cargo listing created", listing }, { status: 201 });
   } catch (err) {
-    // console.error("[CARGO CREATE]", err);
-    // return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[CARGO CREATE]", err);
     return NextResponse.json(

@@ -136,6 +136,8 @@ model Booking {
   driverProfileId   String
   status            BookingStatus @default(PENDING)
   agreedAmount      Float
+  commission        Float     @default(0)
+  amount            Float     @default(0)
   pickupDate        DateTime
   estimatedDelivery DateTime?
   actualDelivery    DateTime?
@@ -230,3 +232,4 @@ enum CargoType {
   MACHINERY
   ELECTRONICS
 }
+
