@@ -85,8 +85,11 @@ const listingSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().optional(),
   cargoType: z.string().min(1, "Cargo type is required"),
-  weightTons: z
-    .number({ invalid_type_error: "Weight must be a number" })
+  weightTons: z.coerce
+    .number()
+    .refine((val) => !isNaN(val), {
+      message: "Weight must be a number",
+    })
     .positive("Weight must be positive"),
   originState: z.string().min(1, "Origin state is required"),
   originCity: z.string().min(1, "Origin city is required"),
@@ -99,9 +102,12 @@ const listingSchema = z.object({
     .refine((s) => !isNaN(Date.parse(s)), {
       message: "Invalid date format",
     }),
-  budget: z
-    .number({ invalid_type_error: "Budget must be a number" })
-    .positive()
+  budget: z.coerce
+    .number()
+    .refine((val) => !isNaN(val), {
+      message: "Budget must be a number",
+    })
+    .positive("Budget must be positive")
     .optional(),
 });
 
@@ -119,7 +125,7 @@ export default function CargoOwnerOnboarding() {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<ListingForm>({
+  } = useForm({
     resolver: zodResolver(listingSchema),
   });
 

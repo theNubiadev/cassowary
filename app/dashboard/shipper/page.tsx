@@ -196,9 +196,11 @@ export default function OwnerDashboard() {
   const active = bookings.filter(
     (b) => !["DELIVERED", "CANCELLED"].includes(b.status),
   );
+
   const past = bookings.filter((b) =>
     ["DELIVERED", "CANCELLED"].includes(b.status),
   );
+
   const totalSpent = bookings
     .filter((b) => b.status === "DELIVERED")
     .reduce((s, b) => s + b.agreedAmount, 0);
@@ -284,8 +286,6 @@ export default function OwnerDashboard() {
               </p>
               <p className="text-xs text-gray-500">Browse available trucks</p>
             </div>
-
-            <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-[#1E3A8A] transition-colors" />
           </Card>
           <Card
             onClick={() => setOpenPostCargo(true)}
@@ -298,7 +298,6 @@ export default function OwnerDashboard() {
               <p className="font-semibold text-sm text-gray-900">Post Cargo</p>
               <p className="text-xs text-gray-500">Create a new listing</p>
             </div>
-            <ChevronRight className="w-4 h-4 text-gray-300 ml-auto group-hover:text-[#F97316] transition-colors" />
           </Card>
 
           {/* ── Active Shipments ── */}
@@ -387,13 +386,11 @@ export default function OwnerDashboard() {
                             {b.status === "ACCEPTED" && (
                               <Button
                                 size="sm"
-                                className="bg-[#1E3A8A] text-white hover:bg-blue-900 h-7 text-xs"
+                                className=""
                                 disabled={payLoading === b.id}
                                 onClick={() => handlePay(b.id)}
                               >
-                                {payLoading === b.id
-                                  ? "Redirecting..."
-                                  : "Pay Now 💳"}
+                                {payLoading === b.id ? "Redirecting..." : ""}
                               </Button>
                             )}
                             {["PENDING", "ACCEPTED"].includes(b.status) && (
@@ -407,12 +404,13 @@ export default function OwnerDashboard() {
                                 {cancelLoading === b.id ? "..." : "Cancel"}
                               </Button>
                             )}
-                            <Link href={`/bookings/${b.id}`}>
+                            <Link href={`/dashboard/bookings/${b.id}`}>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="h-7 text-xs"
                               >
+                                Bookings
                                 <ChevronRight className="w-3 h-3" />
                               </Button>
                             </Link>
@@ -430,9 +428,7 @@ export default function OwnerDashboard() {
           {listings.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold text-gray-900">
-                  My Cargo Listings
-                </h2>
+                <h2 className="font-semibold text-gray-900">My Shipments</h2>
                 {/* <Link href="/onboarding/owner">
                   <Button variant="outline" size="sm" className="h-7 text-xs">
                     <Plus className="w-3 h-3 mr-1" /> New
@@ -450,7 +446,7 @@ export default function OwnerDashboard() {
                         {l.title}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {l.originState} → {l.destState} · {l.weightTons}t ·{" "}
+                        {l.originState} → {l.destState} · {l.weightTons}t · {}
                         {/* {l._count.bookings} */}
                         {(l._count?.bookings ?? 0) !== 1 ? "s" : ""} booking
                         {/* {l._count.bookings !== 1 ? "s" : ""} */}
@@ -466,7 +462,7 @@ export default function OwnerDashboard() {
                       >
                         {l.isActive ? "Active" : "Inactive"}
                       </span>
-                      <Link href={`/cargo/listings/${l.id}`}>
+                      {/* <Link href={`/cargo/listings/${l.id}`}>
                         <Button
                           variant="outline"
                           size="sm"
@@ -474,7 +470,7 @@ export default function OwnerDashboard() {
                         >
                           <ChevronRight className="w-3 h-3" />
                         </Button>
-                      </Link>
+                      </Link> */}
                     </div>
                   </Card>
                 ))}

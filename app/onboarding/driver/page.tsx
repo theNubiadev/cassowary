@@ -90,6 +90,7 @@ const truckSchema = z.object({
     .min(0, { message: "Experience cannot be negative" })
     .optional(),
   bio: z.string().optional(),
+  // .or(z.literal("").transform(() => undefined)),
 });
 
 const ratesSchema = z.object({
@@ -122,15 +123,27 @@ export default function DriverOnboarding() {
     { originState: "", destState: "", estimatedDays: 1 },
   ]);
 
-  const truckForm = useForm<TruckForm>({
+  const truckForm = useForm({
     resolver: zodResolver(truckSchema),
-    defaultValues: { truckYear: new Date().getFullYear(), yearsExperience: 0 },
+    defaultValues: {
+      truckType: "",
+      truckModel: "",
+      truckYear: new Date().getFullYear(),
+      plateNumber: "",
+      capacityTons: 0,
+      baseState: "",
+      baseCity: "",
+      yearsExperience: undefined,
+      bio: "",
+    },
   });
-
-  const ratesForm = useForm<RatesForm>({
+  const ratesForm = useForm({
     resolver: zodResolver(ratesSchema),
+    defaultValues: {
+      ratePerKm: 0,
+      minimumCharge: 0,
+    },
   });
-
   // ── Route helpers ──────────────────────────────────────────────────────────
 
   function addRoute() {
@@ -316,7 +329,7 @@ export default function DriverOnboarding() {
                     <Input
                       type="number"
                       {...truckForm.register("truckYear", {
-                        valueAsNumber: true,
+                        // valueAsNumber: true,
                       })}
                       placeholder="2020"
                     />
@@ -347,9 +360,7 @@ export default function DriverOnboarding() {
                     <Input
                       type="number"
                       step="0.5"
-                      {...truckForm.register("capacityTons", {
-                        valueAsNumber: true,
-                      })}
+                      {...truckForm.register("capacityTons")}
                       placeholder="15"
                     />
                     {truckForm.formState.errors.capacityTons && (
@@ -408,9 +419,7 @@ export default function DriverOnboarding() {
                   <Input
                     type="number"
                     min="0"
-                    {...truckForm.register("yearsExperience", {
-                      valueAsNumber: true,
-                    })}
+                    {...truckForm.register("yearsExperience")}
                     placeholder="5"
                   />
                   {truckForm.formState.errors.yearsExperience && (
@@ -594,9 +603,7 @@ export default function DriverOnboarding() {
                   <Input
                     type="number"
                     min="1"
-                    {...ratesForm.register("ratePerKm", {
-                      valueAsNumber: true,
-                    })}
+                    {...ratesForm.register("ratePerKm")}
                     placeholder="e.g. 300"
                   />
                   <p className="text-xs text-gray-400 mt-1">

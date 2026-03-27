@@ -156,8 +156,8 @@ export default function DriverDashboard() {
         {/* ── Header ── */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Hey, {session?.user?.name?.split(" ")[0] ?? "Driver"} 👋
+            <h1 className="text-2xl font-bold text-gray-900 capitalize">
+              Hey, {session?.user?.name?.split(" ")[0] ?? "Driver"}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
               Here's your activity overview
@@ -184,7 +184,7 @@ export default function DriverDashboard() {
               </button>
             )}
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: "/signin" })}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 text-sm transition-colors"
             >
               <LogOut className="w-4 h-4" /> Sign out

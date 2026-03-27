@@ -52,7 +52,10 @@ const bookingSchema = z.object({
     .min(1, "Pickup date is required")
     .refine((s) => !isNaN(Date.parse(s)), { message: "Invalid date" }),
   agreedAmount: z.coerce
-    .number({ invalid_type_error: "Enter a valid amount" })
+    .number()
+    .refine((val) => !isNaN(val), {
+      message: "Agreed amount must be a number",
+    })
     .positive("Amount must be greater than 0"),
   estimatedDelivery: z.string().optional(),
   notes: z.string().optional(),
@@ -94,7 +97,7 @@ function DriverBottomSheet({
     reset,
     watch,
     formState: { errors },
-  } = useForm<BookingForm>({ resolver: zodResolver(bookingSchema) });
+  } = useForm({ resolver: zodResolver(bookingSchema) });
 
   const watchedListingId = watch("cargoListingId");
 

@@ -131,7 +131,6 @@ const driverSchema = z.object({
 
 type AccountForm = z.infer<typeof accountSchema>;
 type DriverForm = z.infer<typeof driverSchema>;
-// type DriverForm = z.infer<typeof driverSchema>;
 type Tab = "account" | "truck";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -141,7 +140,7 @@ interface ProfileSheetProps {
   onClose: () => void;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// Component ─────────
 
 export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
   const { data: session, update } = useSession();
@@ -158,12 +157,12 @@ export default function ProfileSheet({ open, onClose }: ProfileSheetProps) {
   const isDragging = useRef(false);
 
   // ── Account form ────────────────────────────────────────────────────────────
-  const accountForm = useForm<AccountForm>({
+  const accountForm = useForm({
     resolver: zodResolver(accountSchema),
   });
 
   // ── Driver form (truck + routes combined — mirrors your PUT handler) ─────────
-  const driverForm = useForm<DriverForm>({
+  const driverForm = useForm({
     resolver: zodResolver(driverSchema),
     defaultValues: {
       truckYear: new Date().getFullYear(),

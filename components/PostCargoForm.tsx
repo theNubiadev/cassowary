@@ -85,26 +85,36 @@ const listingSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().optional(),
   cargoType: z.string().min(1, "Cargo type is required"),
-  weightTons: z
-    .number({ invalid_type_error: "Weight must be a number" })
+
+  weightTons: z.coerce
+    .number()
+    .refine((val) => !isNaN(val), {
+      message: "Weight must be a number",
+    })
     .positive("Weight must be positive"),
+
   originState: z.string().min(1, "Origin state is required"),
   originCity: z.string().min(1, "Origin city is required"),
   destState: z.string().min(1, "Destination state is required"),
   destCity: z.string().min(1, "Destination city is required"),
+
   requiredTruck: z.string().optional(),
+
   neededBy: z
     .string()
     .min(1, "Date is required")
     .refine((s) => !isNaN(Date.parse(s)), {
       message: "Invalid date format",
     }),
-  budget: z
-    .number({ invalid_type_error: "Budget must be a number" })
-    .positive()
+
+  budget: z.coerce
+    .number()
+    .refine((val) => !isNaN(val), {
+      message: "Budget must be a number",
+    })
+    .positive("Budget must be positive")
     .optional(),
 });
-
 type ListingForm = z.infer<typeof listingSchema>;
 
 export default function PostCargoForm({
@@ -123,7 +133,7 @@ export default function PostCargoForm({
     setValue,
     reset,
     formState: { errors },
-  } = useForm<ListingForm>({
+  } = useForm({
     resolver: zodResolver(listingSchema),
   });
 
