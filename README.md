@@ -26,8 +26,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Contributors
 
-Ajaiyeoba John Ajibola - Full Stack Developer []
-Bankole Ogooluwakitan - Product Designer []
+Ajaiyeoba John Ajibola - Full Stack Developer [ajaiyeobajibola@gmail.com]
+Bankole Ogooluwakitan - Product Designer [bankoleogooluwakiitan@gmail.con]
 
 ---
 
