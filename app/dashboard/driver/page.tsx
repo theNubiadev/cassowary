@@ -19,7 +19,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-
+import ProfileSheet from "@/components/ProfileSheet";
 interface Booking {
   id: string;
   status: string;
@@ -97,6 +97,7 @@ export default function DriverDashboard() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -256,11 +257,18 @@ export default function DriverDashboard() {
                 </p>
               </div>
             </div>
-            <Link href="/onboarding/driver">
-              <Button variant="outline" className="text-xs h-8">
-                <User className="w-3 h-3 mr-1" /> Edit Profile
-              </Button>
-            </Link>
+
+            <Button
+              variant="outline"
+              className="text-xs h-8"
+              onClick={() => setProfileOpen(true)}
+            >
+              <User className="w-3 h-3 mr-1" /> Edit Profile
+            </Button>
+            <ProfileSheet
+              open={profileOpen}
+              onClose={() => setProfileOpen(false)}
+            />
           </Card>
         )}
 
