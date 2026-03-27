@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
@@ -73,21 +74,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Plate number already registered" }, { status: 409 });
     }
 
-    const profile = await prisma.$transaction(async (tx) => {
-      const p = await tx.driverProfile.create({
-        data: { userId: session.user.id, ...profileData },
 
-      });
-      await tx.route.createMany({
-        data: routes.map((r) => ({ ...r, driverProfileId: p.id })),
-      });
-      // Mark onboarding complete
-      await tx.user.update({
-        where: { id: session.user.id },
-        data: { onboardingComplete: true },
-      });
-      return p;
+
+    const profile = await prisma.$transaction(
+  async (tx: Prisma.TransactionClient) => {
+    const p = await tx.driverProfile.create({
+      data: { userId: session.user.id, ...profileData },
     });
+
+    await tx.route.createMany({
+      data: routes.map((r) => ({
+        originState: r.originState,
+        originCity: r.originCity ?? null,
+        destState: r.destState,
+        destCity: r.destCity ?? null,
+        estimatedDays: r.estimatedDays ?? 1,
+        driverProfileId: p.id,
+      })),
+    });
+
+    await tx.user.update({
+      where: { id: session.user.id },
+      data: { onboardingComplete: true },
+    });
+
+    return p;
+  }
+);
 
     return NextResponse.json({ message: "Driver profile created", profile }, { status: 201 });
   } catch (err) {
