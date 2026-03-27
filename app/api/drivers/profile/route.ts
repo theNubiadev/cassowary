@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
     const profile = await prisma.$transaction(async (tx) => {
       const p = await tx.driverProfile.create({
         data: { userId: session.user.id, ...profileData },
+
       });
       await tx.route.createMany({
         data: routes.map((r) => ({ ...r, driverProfileId: p.id })),
