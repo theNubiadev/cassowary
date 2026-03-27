@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Plate number already registered" }, { status: 409 });
     }
 
-    const profile = await prisma.$transaction(async (tx) => {
+    const profile = await prisma.$transaction(async (tx: any) => {
       const p = await tx.driverProfile.create({
         data: { userId: session.user.id, ...profileData },
       });
