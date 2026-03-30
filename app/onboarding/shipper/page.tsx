@@ -395,9 +395,9 @@ export default function CargoOwnerOnboarding() {
                   {...register("budget", { valueAsNumber: true })}
                   placeholder="e.g. 150000"
                 />
-                <p className="text-xs text-gray-400 mt-1">
+                {/* <p className="text-xs text-gray-400 mt-1">
                   Leave blank if you want to negotiate with drivers
-                </p>
+                </p> */}
                 {errors.budget && (
                   <p className="text-red-500 text-sm mt-1">
                     {errors.budget.message}
